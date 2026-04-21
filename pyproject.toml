@@ -1,0 +1,36 @@
+[project]
+name = "ingest-agent"
+version = "0.1.0"
+description = "Add your description here"
+requires-python = ">=3.11"
+dependencies = [
+    "boto3>=1.35.0",
+    "fastapi>=0.124.0",
+    "httpx>=0.28.1",
+    "python-library",
+    "psycopg[binary]>=3.0.0",
+    "pydantic>=2.0.0",
+    "python-jose[cryptography]>=3.5.0",
+    "uvicorn>=0.38.0",
+]
+
+[dependency-groups]
+dev = [
+    "pre-commit>=4.5.0",
+    "pyright>=1.1.407",
+    "pytest>=9.0.2",
+    "pytest-cov>=7.0.0",
+    "ruff>=0.14.8",
+]
+
+[tool.uv.sources]
+python-library = { path = "libs/python_library-2.2.7-py3-none-any.whl" }
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.pyright]
+pythonVersion = "3.12"
+typeCheckingMode = "basic"
+executionEnvironments = [{ root = "src" }]
