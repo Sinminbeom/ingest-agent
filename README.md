@@ -47,17 +47,38 @@ ingest-agent/
 | POST | `/ingest-agent/v1/ingest/batch/{batch_public_id}` | 배치 인제스트 요청 (HTTP 202 반환) |
 | GET | `/ingest-agent/health` | 헬스 체크 |
 
-- Swagger UI: `/ingest-agent/docs`
-
 ## 설정
 
 `conf/application.conf`에서 환경별 설정 관리. `APP_ENV` 환경변수로 `DEV` / `PRD` 구분.
 
 ```ini
 [COMMON]
-ThreadCount = 3
-AwsAccessKeyId = <AWS Access Key>
-AwsSecretAccessKey = <AWS Secret Key>
+PROJECT_NAME = ingest-agent
+PROJECT_VERSION = 0.1.0
+THREAD_COUNT = 3
+META_SCHEMA_URL = <메타데이터 스키마 URL>
+REGION_NAME = ap-northeast-2
+S3_BASE_PATH = ingest-agent
+
+[ACQUISITION]
+SOFTWARE_NAME = <소프트웨어명>
+SOFTWARE_VERSION = <버전>
+MODE_CODE = <모드코드>
+MODE_URL = <모드 URL>
+
+[DEV]
+COGNITO_USER_POOL_ID = <Cognito User Pool ID>
+AWS_DB_SECRET_ID = <DB Secret ARN>
+DB_SSM_TUNNEL_PORT = <포트>
+S3_BUCKET = <S3 버킷명>
+STATE_MACHINE_ARN = <Step Functions ARN>
+
+[PRD]
+COGNITO_USER_POOL_ID = <Cognito User Pool ID>
+AWS_DB_SECRET_ID = <DB Secret ARN>
+DB_SSM_TUNNEL_PORT = <포트>
+S3_BUCKET = <S3 버킷명>
+STATE_MACHINE_ARN = <Step Functions ARN>
 ```
 
 ## 개발 환경 설정
