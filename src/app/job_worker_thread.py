@@ -1,14 +1,14 @@
 import time
 from typing import cast
 
-from oncx_core.thread.worker_thread import abWorkerThread
+from python_library.thread.worker_thread import QueueThread
 
 from app.job_complete_thread import JobCompleteThread
 from job.complete_job import CompleteJob
 from job.upload_job import UploadJob
 
 
-class JobWorkerThread(abWorkerThread):
+class JobWorkerThread(QueueThread):
     JOB_WORKER = "JobWorker"
 
     def __init__(self) -> None:
