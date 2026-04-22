@@ -1,9 +1,9 @@
 import time
 
-from oncx_core.thread.worker_thread import abWorkerThread
+from python_library.thread.worker_thread import QueueThread
 
 
-class JobCompleteThread(abWorkerThread):
+class JobCompleteThread(QueueThread):
     JOB_COMPLETE = "JobComplete"
 
     def __init__(self):

@@ -2,15 +2,15 @@ import time
 import os
 from typing import cast, List, TypeAlias
 
-from oncx_core.db.db import IDB
-from oncx_core.db.postgresql.postgresql_db_factory import PostgresqlDBFactory
-from oncx_core.db.postgresql.postgresql_db_info_factory import PostgresqlDBInfoFactory
-from oncx_core.define.enum import IENUM
-from oncx_core.logger.app_logger import AppLogger
-from oncx_core.storage.s3.s3_storage_factory import S3StorageFactory
-from oncx_core.storage.s3.s3_storage_info_factory import S3StorageInfoFactory
-from oncx_core.storage.storage import IStorage
-from oncx_core.thread.multi_thread_manager import MultiThreadManager
+from python_library.db.db import IDB
+from python_library.db.postgresql.postgresql_db_factory import PostgresqlDBFactory
+from python_library.db.postgresql.postgresql_db_info_factory import PostgresqlDBInfoFactory
+from python_library.define.enum import IENUM
+from python_library.logger.app_logger import AppLogger
+from python_library.storage.s3.s3_storage_factory import S3StorageFactory
+from python_library.storage.s3.s3_storage_info_factory import S3StorageInfoFactory
+from python_library.storage.storage import IStorage
+from python_library.thread.multi_thread_manager import MultiThreadManager
 
 from app.job_complete_thread import JobCompleteThread
 from app.job_worker_thread import JobWorkerThread
