@@ -1,6 +1,6 @@
 import time
 
-from python_library.thread.worker_thread import QueueThread
+from python_library.thread.queue_thread import QueueThread
 
 
 class JobCompleteThread(QueueThread):

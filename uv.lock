@@ -476,10 +476,10 @@ dependencies = [
     { name = "boto3" },
     { name = "fastapi" },
     { name = "httpx" },
-    { name = "oncx-core" },
     { name = "psycopg", extra = ["binary"] },
     { name = "pydantic" },
     { name = "python-jose", extra = ["cryptography"] },
+    { name = "python-library" },
     { name = "uvicorn" },
 ]
 
@@ -497,10 +497,10 @@ requires-dist = [
     { name = "boto3", specifier = ">=1.35.0" },
     { name = "fastapi", specifier = ">=0.124.0" },
     { name = "httpx", specifier = ">=0.28.1" },
-    { name = "oncx-core", git = "ssh://git@company-github/oncocross/oncx-core.git?rev=v2.2.6" },
     { name = "psycopg", extras = ["binary"], specifier = ">=3.0.0" },
     { name = "pydantic", specifier = ">=2.0.0" },
     { name = "python-jose", extras = ["cryptography"], specifier = ">=3.5.0" },
+    { name = "python-library", path = "libs/python_library-2.3.0-py3-none-any.whl" },
     { name = "uvicorn", specifier = ">=0.38.0" },
 ]
 
@@ -559,17 +559,6 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/43/16/fc88b08840de0e0a72a2f9d8c6bae36be573e475a6326ae854bcc549fc45/nodeenv-1.9.1.tar.gz", hash = "sha256:6ec12890a2dab7946721edbfbcd91f3319c6ccc9aec47be7c7e6b7011ee6645f", size = 47437, upload-time = "2024-06-04T18:44:11.171Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/d2/1d/1b658dbd2b9fa9c4c9f32accbfc0205d532c8c6194dc0f2a4c0428e7128a/nodeenv-1.9.1-py2.py3-none-any.whl", hash = "sha256:ba11c9782d29c27c70ffbdda2d7415098754709be8a7056d79a737cd901155c9", size = 22314, upload-time = "2024-06-04T18:44:08.352Z" },
-]
-
-[[package]]
-name = "oncx-core"
-version = "2.2.6"
-source = { git = "ssh://git@company-github/oncocross/oncx-core.git?rev=v2.2.6#734151c94d2f040c78c9dba6ee2b1c0583fffcbd" }
-dependencies = [
-    { name = "argon2-cffi" },
-    { name = "boto3" },
-    { name = "pyarrow" },
-    { name = "rich" },
 ]
 
 [[package]]
@@ -946,6 +935,30 @@ wheels = [
 cryptography = [
     { name = "cryptography" },
 ]
+
+[[package]]
+name = "python-library"
+version = "2.3.0"
+source = { path = "libs/python_library-2.3.0-py3-none-any.whl" }
+dependencies = [
+    { name = "argon2-cffi" },
+    { name = "boto3" },
+    { name = "pyarrow" },
+    { name = "rich" },
+]
+wheels = [
+    { filename = "python_library-2.3.0-py3-none-any.whl", hash = "sha256:7ff4cb3ed4a0d1a9115f2bbc0bf5bc2ed268258ea7b80cf6b1d24f9e59a24221" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "argon2-cffi", specifier = ">=25.1.0" },
+    { name = "boto3", specifier = ">=1.42.0" },
+    { name = "psycopg", extras = ["binary"], marker = "extra == 'postgres'", specifier = ">=3.2.1" },
+    { name = "pyarrow", specifier = ">=22.0.0" },
+    { name = "rich", specifier = ">=14.2.0" },
+]
+provides-extras = ["postgres"]
 
 [[package]]
 name = "pyyaml"
