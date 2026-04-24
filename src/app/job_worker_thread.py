@@ -1,7 +1,7 @@
 import time
 from typing import cast
 
-from python_library.thread.worker_thread import QueueThread
+from python_library.thread.queue_thread import QueueThread
 
 from app.job_complete_thread import JobCompleteThread
 from job.complete_job import CompleteJob
