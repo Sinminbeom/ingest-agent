@@ -1,7 +1,7 @@
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 
-from oncx_core.define.enum import IENUM
+from python_library.define.enum import IENUM
 
 
 class E_TIMEFORMAT(IENUM):

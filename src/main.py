@@ -2,11 +2,12 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from oncx_core.logger.app_logger import AppLogger
+from python_library.logger.app_logger import AppLogger
 
 from api.routers import router as api_router
 from app.ingest_agent import IngestAgent
 from config.project_config import ProjectConfig
+from config.version import resolve_version
 from exceptions.handler import register_exception_handlers
 
 
@@ -38,8 +39,8 @@ async def lifespan(app: FastAPI):
 def create_app() -> FastAPI:
     app = FastAPI(
         title="Ingest Agent",
-        description="Oncocross Ingest Agent",
-        version="0.1.1",
+        description="Ingest Agent",
+        version=resolve_version(),
         lifespan=lifespan,
         docs_url="/ingest-agent/docs",
         redoc_url="/ingest-agent/redoc",

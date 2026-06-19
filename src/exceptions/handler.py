@@ -6,7 +6,7 @@ from fastapi.responses import JSONResponse
 
 from exceptions.custom_exception import CustomException
 from exceptions.invalid_parameter_exception import InvalidParameterException
-from oncx_core.logger.app_logger import AppLogger
+from python_library.logger.app_logger import AppLogger
 from response.error_response import ErrorResponse
 
 
