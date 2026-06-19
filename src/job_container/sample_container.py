@@ -1,42 +1,63 @@
 from dataclasses import asdict
-from typing import Any, Dict, List, Optional, Iterable
+from typing import Any, Dict, Iterable
 
 from job_container.base_node import BaseNode
 from job_container.job_container import JobContainer
-from meta.sample import Sample, SampleIdentifiers, Content, File, Checksum, FileTimestamps, FileDiagnostics
+from meta.sample import (
+    Sample,
+    SampleIdentifiers,
+    Content,
+    File,
+    Checksum,
+    FileTimestamps,
+    FileDiagnostics,
+)
 
 
 class SampleContainer(BaseNode):
-    """sample_uuid 단위 노드.
+    """project_sample(또는 NON_SAMPLE) 단위 노드.
     - 내부 JobContainer 기능은 그대로 유지
     - datalake-catalog schema용 Sample dataclass를 보유
     """
 
-    def __init__(self, experiment_public_id: str, sample_public_id: str) -> None:
+    KIND_SAMPLE = "SAMPLE"
+    KIND_NON_SAMPLE = "NON_SAMPLE"
+
+    def __init__(
+        self, project_public_id: str, sample_public_id: str, file_kind: str
+    ) -> None:
         self.job: JobContainer = JobContainer()
 
         self.sample = Sample(
-            identifiers=SampleIdentifiers(experiment_public_id, sample_public_id),
+            identifiers=SampleIdentifiers(
+                project_public_id, sample_public_id, file_kind
+            ),
             content=Content(files=[]),
             extensions={},
         )
 
     @property
-    def experiment_public_id(self) -> str:
-        return self.sample.identifiers.experiment_uuid
+    def project_public_id(self) -> str:
+        return self.sample.identifiers.project_uuid
 
     @property
     def sample_public_id(self) -> str:
         return self.sample.identifiers.sample_uuid
 
-    def add_file(self, url: str, size_bytes: int, checksum_algo: str, checksum_value: str) -> None:
+    @property
+    def file_kind(self) -> str:
+        return self.sample.identifiers.file_kind
+
+    def add_file(
+        self, url: str, size_bytes: int, checksum_algo: str, checksum_value: str
+    ) -> None:
         file = File(
             uri=url,
             size_bytes=size_bytes,
             checksum=Checksum(algo=checksum_algo, value=checksum_value),
             timestamps=FileTimestamps(),
             status="",
-            diagnostics=FileDiagnostics()
+            diagnostics=FileDiagnostics(),
         )
         self.sample.content.files.append(file)
 
@@ -94,13 +115,20 @@ class SampleContainer(BaseNode):
 
         raise ValueError(f"File not found in sample: uri={url}")
 
+    def has_failed_file(self) -> bool:
+        return any(
+            f.status == File.E_FILE_STATUS.FAIL for f in self.sample.content.files
+        )
+
     def to_schema_sample_dict(self) -> Dict[str, Any]:
         d = asdict(self.sample)
         ext = d.get("extensions") or {}
-        # ext["job"] = self.job.to_dict()
         d["extensions"] = ext
         return d
 
     def to_dict(self) -> dict:
-        # 기존 호출부 호환 + schema도 같이 노출
-        return {"sample_public_id": self.sample_public_id, "job": self.job.to_dict(), "schema": self.to_schema_sample_dict()}
+        return {
+            "sample_public_id": self.sample_public_id,
+            "job": self.job.to_dict(),
+            "schema": self.to_schema_sample_dict(),
+        }

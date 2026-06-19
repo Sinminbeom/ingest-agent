@@ -1,4 +1,4 @@
-from oncx_core.singleton.singleton import Singleton
+from python_library.singleton.singleton import Singleton
 
 from utils.time_string_fit import TimeStringFit, E_TIMEFORMAT
 

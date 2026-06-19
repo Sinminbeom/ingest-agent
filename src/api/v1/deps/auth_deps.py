@@ -4,7 +4,6 @@ from fastapi import Depends, Header
 from fastapi.security import OAuth2PasswordBearer
 
 from domain.auth_context import AuthContext
-from schemas.auth.jwt_claims_request import JwtClaimsRequest
 from security.jwt.cognito_jwt_service import CognitoJwtService
 from security.jwt.jwt_service import IJwtService
 

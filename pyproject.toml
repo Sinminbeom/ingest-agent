@@ -1,6 +1,6 @@
 [project]
 name = "ingest-agent"
-version = "0.1.0"
+version = "0.4.6"
 description = "Add your description here"
 requires-python = ">=3.11"
 dependencies = [
@@ -21,6 +21,10 @@ dev = [
     "pytest>=9.0.2",
     "pytest-cov>=7.0.0",
     "ruff>=0.14.8",
+]
+# 배포 빌드 전용 (고객사 머신 인스톨러 생성). CI/로컬 빌드 시 `uv sync --group build`.
+build = [
+    "pyinstaller>=6.0.0",
 ]
 
 [tool.uv.sources]

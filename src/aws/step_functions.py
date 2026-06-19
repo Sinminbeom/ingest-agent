@@ -2,7 +2,7 @@ import boto3
 import json
 from datetime import datetime, timezone
 
-from oncx_core.logger.app_logger import AppLogger
+from python_library.logger.app_logger import AppLogger
 
 from config.project_config import ProjectConfig
 
@@ -25,18 +25,15 @@ class StepFunctions:
             region_name=self._region_name,
         )
 
-    def start_execution(self, tenant_id: str, batch_id: str) -> None:
-        payload = {
-            "tenant_id": tenant_id,
-            "batch_id": batch_id
-        }
+    def start_execution(self, tenant_public_id: str, batch_public_id: str) -> None:
+        payload = {"tenant_id": tenant_public_id, "batch_id": batch_public_id}
 
         execution_name = f"ingest-{payload['tenant_id'][:8]}-{payload['batch_id'][:8]}-{int(datetime.now(tz=timezone.utc).timestamp())}"
 
         self._client.start_execution(
             stateMachineArn=self._state_machine_arn,
             name=execution_name,
-            input=json.dumps(payload)
+            input=json.dumps(payload),
         )
 
         AppLogger.instance().info(f"Step functions start execution {payload}")

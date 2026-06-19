@@ -1,4 +1,4 @@
-from typing import Dict, Iterable, List, Any
+from typing import Dict, Iterable, Any
 
 from job_container.batch_container import BatchContainer
 from job_container.composite_node import CompositeNode
@@ -28,25 +28,85 @@ class RequestContainer(CompositeNode):
         return node  # type: ignore[return-value]
 
     # ---- 기존 API 유지 ----
-    def add_markers(self, seq: str, batch_public_id: str, experiment_public_id: str, sample_public_id: str, markers: Iterable[str]) -> None:
-        self.get_or_create_sequence(seq).add_markers(batch_public_id, experiment_public_id, sample_public_id, markers)
+    def add_markers(
+        self,
+        seq: str,
+        batch_public_id: str,
+        project_public_id: str,
+        sample_public_id: str,
+        file_kind: str,
+        markers: Iterable[str],
+    ) -> None:
+        self.get_or_create_sequence(seq).add_markers(
+            batch_public_id, project_public_id, sample_public_id, file_kind, markers
+        )
 
-    def add_marker(self, seq: str, batch_public_id: str, experiment_public_id: str, sample_public_id: str, marker: str, tenant_id: str = "") -> None:
-        self.get_or_create_sequence(seq).add_marker(batch_public_id, experiment_public_id, sample_public_id, marker, tenant_id)
+    def add_marker(
+        self,
+        seq: str,
+        batch_public_id: str,
+        project_public_id: str,
+        sample_public_id: str,
+        file_kind: str,
+        marker: str,
+        tenant_public_id: str = "",
+    ) -> None:
+        self.get_or_create_sequence(seq).add_marker(
+            batch_public_id,
+            project_public_id,
+            sample_public_id,
+            file_kind,
+            marker,
+            tenant_public_id,
+        )
 
-    def add_file(self, seq: str, batch_public_id: str, experiment_public_id: str, sample_public_id: str, path: str, url: str) -> None:
-        self.get_or_create_sequence(seq).add_file(batch_public_id, experiment_public_id, sample_public_id, path, url)
+    def add_file(
+        self,
+        seq: str,
+        batch_public_id: str,
+        project_public_id: str,
+        sample_public_id: str,
+        file_kind: str,
+        path: str,
+        url: str,
+    ) -> None:
+        self.get_or_create_sequence(seq).add_file(
+            batch_public_id, project_public_id, sample_public_id, file_kind, path, url
+        )
 
-    def mark_complete(self, seq: str, batch_public_id: str, experiment_public_id: str, sample_public_id: str, marker: str) -> None:
-        self.get_or_create_sequence(seq).mark_complete(batch_public_id, experiment_public_id, sample_public_id, marker)
+    def mark_complete(
+        self,
+        seq: str,
+        batch_public_id: str,
+        project_public_id: str,
+        sample_public_id: str,
+        file_kind: str,
+        marker: str,
+    ) -> None:
+        self.get_or_create_sequence(seq).mark_complete(
+            batch_public_id, project_public_id, sample_public_id, file_kind, marker
+        )
 
-    def is_marker_done(self, seq: str, batch_public_id: str, experiment_public_id: str, sample_public_id: str, marker: str) -> bool:
-        return self.get_or_create_sequence(seq).is_marker_done(batch_public_id, experiment_public_id, sample_public_id, marker)
+    def is_marker_done(
+        self,
+        seq: str,
+        batch_public_id: str,
+        project_public_id: str,
+        sample_public_id: str,
+        file_kind: str,
+        marker: str,
+    ) -> bool:
+        return self.get_or_create_sequence(seq).is_marker_done(
+            batch_public_id, project_public_id, sample_public_id, file_kind, marker
+        )
 
     def mark_batch_requested(self, batch_public_id: str) -> None:
         for _, seq in self.iter_children():
             for _, batch in seq.iter_children():
-                if isinstance(batch, BatchContainer) and batch.batch_public_id == batch_public_id:
+                if (
+                    isinstance(batch, BatchContainer)
+                    and batch.batch_public_id == batch_public_id
+                ):
                     batch.batch.timestamps.requested_at = utc_now_iso()
                     return
 
@@ -55,31 +115,76 @@ class RequestContainer(CompositeNode):
     def mark_batch_ingested(self, batch_public_id: str) -> None:
         for _, seq in self.iter_children():  # SequenceContainer들
             for _, batch in seq.iter_children():  # BatchContainer들
-                if isinstance(batch, BatchContainer) and batch.batch_public_id == batch_public_id:
+                if (
+                    isinstance(batch, BatchContainer)
+                    and batch.batch_public_id == batch_public_id
+                ):
                     batch.batch.timestamps.ingested_at = utc_now_iso()
                     return
 
         raise ValueError(f"Batch not found: batch_public_id={batch_public_id}")
 
-    def mark_file_detected(self, seq_id: str, batch_public_id: str, experiment_public_id: str, sample_public_id: str, path: str, tenant_id: str = "") -> None:
+    def find_batch(self, batch_public_id: str) -> BatchContainer:
+        for _, seq in self.iter_children():
+            for _, batch in seq.iter_children():
+                if (
+                    isinstance(batch, BatchContainer)
+                    and batch.batch_public_id == batch_public_id
+                ):
+                    return batch
+        raise ValueError(f"Batch not found: batch_public_id={batch_public_id}")
+
+    def mark_file_detected(
+        self,
+        seq_id: str,
+        batch_public_id: str,
+        project_public_id: str,
+        sample_public_id: str,
+        file_kind: str,
+        path: str,
+        tenant_public_id: str = "",
+    ) -> None:
         seq = self.get_or_create_sequence(seq_id)
-        batch = seq.get_or_create_batch(batch_public_id, tenant_id)
-        experiment = batch.get_or_create_experiment(experiment_public_id)
-        sample = experiment.get_or_create_sample(sample_public_id)
+        batch = seq.get_or_create_batch(batch_public_id, tenant_public_id)
+        sample = batch.get_or_create_sample(
+            project_public_id, sample_public_id, file_kind
+        )
         sample.mark_file_detected(path)
 
-    def mark_file_uploaded(self, seq_id: str, batch_public_id: str, experiment_public_id: str, sample_public_id: str, path: str, tenant_id: str = "") -> None:
+    def mark_file_uploaded(
+        self,
+        seq_id: str,
+        batch_public_id: str,
+        project_public_id: str,
+        sample_public_id: str,
+        file_kind: str,
+        path: str,
+        tenant_public_id: str = "",
+    ) -> None:
         seq = self.get_or_create_sequence(seq_id)
-        batch = seq.get_or_create_batch(batch_public_id, tenant_id)
-        experiment = batch.get_or_create_experiment(experiment_public_id)
-        sample = experiment.get_or_create_sample(sample_public_id)
+        batch = seq.get_or_create_batch(batch_public_id, tenant_public_id)
+        sample = batch.get_or_create_sample(
+            project_public_id, sample_public_id, file_kind
+        )
         sample.mark_file_uploaded(path)
 
-    def mark_file_failed(self, seq_id: str, batch_public_id: str, experiment_public_id: str, sample_public_id: str, path: str, code: str, msg: str, tenant_id: str = "") -> None:
+    def mark_file_failed(
+        self,
+        seq_id: str,
+        batch_public_id: str,
+        project_public_id: str,
+        sample_public_id: str,
+        file_kind: str,
+        path: str,
+        code: str,
+        msg: str,
+        tenant_public_id: str = "",
+    ) -> None:
         seq = self.get_or_create_sequence(seq_id)
-        batch = seq.get_or_create_batch(batch_public_id, tenant_id)
-        experiment = batch.get_or_create_experiment(experiment_public_id)
-        sample = experiment.get_or_create_sample(sample_public_id)
+        batch = seq.get_or_create_batch(batch_public_id, tenant_public_id)
+        sample = batch.get_or_create_sample(
+            project_public_id, sample_public_id, file_kind
+        )
         sample.mark_file_failed(path, code, msg)
 
     # ---- schema export ----
@@ -87,9 +192,4 @@ class RequestContainer(CompositeNode):
         """
         meta.json 용: 특정 batch 하나만 스키마로 export
         """
-        for _, seq in self.iter_children():
-            for _, batch in seq.iter_children():
-                if batch.batch_public_id == batch_public_id:
-                    return batch.to_schema_dict()
-
-        raise ValueError(f"Batch not found: {batch_public_id}")
+        return self.find_batch(batch_public_id).to_schema_dict()
