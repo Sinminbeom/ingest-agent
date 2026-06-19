@@ -3,18 +3,30 @@ from typing import Any, Dict, List
 
 from config.project_config import ProjectConfig
 from job_container.composite_node import CompositeNode
-from job_container.experiment_container import ExperimentContainer
-from meta.batch import Batch, BatchIdentifiers, BatchContent, Source, Acquisition, Timestamps, Diagnostics
+from job_container.sample_container import SampleContainer
+from meta.batch import (
+    Batch,
+    BatchIdentifiers,
+    BatchContent,
+    Source,
+    Acquisition,
+    Timestamps,
+    Diagnostics,
+)
 from utils.util import utc_now_iso
 
 
 class BatchContainer(CompositeNode):
     """
     batch_public_id 단위 Composite.
-    children = ExperimentContainer 들 (key: experiment_public_id)
+    children = SampleContainer 들.
+    - SAMPLE 파일: key = sample_public_id
+    - NON_SAMPLE 파일: key = "" (단일 컨테이너에 모음)
     """
 
-    def __init__(self, batch_public_id: str, tenant_id: str) -> None:
+    NON_SAMPLE_KEY = ""
+
+    def __init__(self, batch_public_id: str, tenant_public_id: str) -> None:
         super().__init__(batch_public_id)
         self.schema: str = ProjectConfig.instance().meta_schema_url
 
@@ -28,7 +40,9 @@ class BatchContainer(CompositeNode):
         mode_url = ProjectConfig.instance().mode_url
 
         self.batch = Batch(
-            identifiers=BatchIdentifiers(tenant_uuid=tenant_id, batch_uuid=batch_public_id),
+            identifiers=BatchIdentifiers(
+                tenant_uuid=tenant_public_id, batch_uuid=batch_public_id
+            ),
             content=BatchContent(
                 source=Source(type="agent", name=project_name, version=project_version),
                 acquisition=Acquisition(
@@ -47,16 +61,33 @@ class BatchContainer(CompositeNode):
         return self.name
 
     @property
-    def experiments(self) -> Dict[str, ExperimentContainer]:
-        return self._children # type: ignore[return-value]
+    def samples(self) -> Dict[str, SampleContainer]:
+        return self._children  # type: ignore[return-value]
 
-    # -------- Experiment 헬퍼 --------
-    def get_or_create_experiment(self, experiment_public_id: str) -> ExperimentContainer:
-        node = self.get_child(experiment_public_id)
+    # -------- Sample 헬퍼 --------
+    def get_or_create_sample(
+        self, project_public_id: str, sample_public_id: str, file_kind: str
+    ) -> SampleContainer:
+        key = (
+            sample_public_id
+            if file_kind == SampleContainer.KIND_SAMPLE
+            else BatchContainer.NON_SAMPLE_KEY
+        )
+        node = self.get_child(key)
         if node is None:
-            node = ExperimentContainer(experiment_public_id)
-            self.add_child(experiment_public_id, node)
+            node = SampleContainer(project_public_id, sample_public_id, file_kind)
+            self.add_child(key, node)
         return node  # type: ignore[return-value]
+
+    def iter_sample_containers(self) -> List[SampleContainer]:
+        out: List[SampleContainer] = []
+        for _, node in self.iter_children():
+            if isinstance(node, SampleContainer):
+                out.append(node)
+        return out
+
+    def has_failed_file(self) -> bool:
+        return any(sc.has_failed_file() for sc in self.iter_sample_containers())
 
     def mark_requested(self) -> None:
         self.batch.timestamps.requested_at = utc_now_iso()
@@ -65,13 +96,9 @@ class BatchContainer(CompositeNode):
         self.batch.timestamps.ingested_at = utc_now_iso()
 
     def to_schema_dict(self) -> Dict[str, Any]:
-        samples: List[Dict[str, Any]] = []
-        for _, exp in self.iter_children():
-            if not isinstance(exp, ExperimentContainer):
-                continue
-            for sample in exp.iter_sample_containers():
-                samples.append(sample.to_schema_sample_dict())
-
+        samples: List[Dict[str, Any]] = [
+            sc.to_schema_sample_dict() for sc in self.iter_sample_containers()
+        ]
         return {"$schema": self.schema, "batch": asdict(self.batch), "samples": samples}
 
     def to_dict(self) -> dict:

@@ -28,8 +28,9 @@ class JobWorkerThread(QueueThread):
                 job.request_container,
                 job.seq_id,
                 job.batch_public_id,
-                job.experiment_public_id,
+                job.project_public_id,
                 job.sample_public_id,
+                job.file_kind,
                 job.dst_path,
             )
             self.push_shared_queue(JobCompleteThread.JOB_COMPLETE, complete_job)

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  WinSW service definition. Wraps ingest-agent.exe (PyInstaller output) as a
+  Windows service: auto-start on boot + auto-restart on crash.
+
+  NOTE: keep this file ASCII-only. The installer rewrites it to substitute
+  APP_ENV via an AnsiString round-trip; non-ASCII bytes would be corrupted and
+  WinSW's XML parser would reject the config.
+
+  Layout:
+    - Rename the WinSW binary to ingest-agent-service.exe in {app}.
+    - Place this file as ingest-agent-service.xml in the same folder ({app}).
+    - Install: ingest-agent-service.exe install && ingest-agent-service.exe start
+  %BASE% is a WinSW built-in variable: the directory of the service exe/xml ({app}).
+-->
+<service>
+  <id>ingest-agent</id>
+  <name>Ingest Agent</name>
+  <description>Data ingest agent (FastAPI/uvicorn).</description>
+
+  <executable>%BASE%\ingest-agent.exe</executable>
+  <workingdirectory>%BASE%</workingdirectory>
+
+  <!-- main.py reads ./conf/* relative to CWD, so workingdirectory is pinned to {app} -->
+  <!-- APP_ENV value: installer substitutes __APP_ENV__ per /env arg (or app.env) -->
+  <env name="APP_ENV" value="__APP_ENV__" />
+  <env name="INGEST_HOST" value="127.0.0.1" />
+  <env name="INGEST_PORT" value="33000" />
+
+  <startmode>Automatic</startmode>
+
+  <!-- restart with increasing delay on abnormal exit -->
+  <onfailure action="restart" delay="10 sec" />
+  <onfailure action="restart" delay="30 sec" />
+  <resetfailure>1 hour</resetfailure>
+
+  <log mode="roll-by-size">
+    <logpath>%BASE%\logs</logpath>
+    <sizeThreshold>10240</sizeThreshold>
+    <keepFiles>8</keepFiles>
+  </log>
+</service>

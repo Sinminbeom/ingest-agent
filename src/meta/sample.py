@@ -68,8 +68,9 @@ class Content:
 
 @dataclass
 class SampleIdentifiers:
-    experiment_uuid: str
+    project_uuid: str
     sample_uuid: str
+    file_kind: str
 
 
 @dataclass

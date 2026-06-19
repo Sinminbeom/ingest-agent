@@ -31,6 +31,13 @@ MANIFEST
 #  before PyInstaller builds the exe, so as to inject date/other infos into it.
 *.manifest
 *.spec
+# 직접 작성한 배포 빌드 레시피는 추적 대상 (자동생성 spec이 아님)
+!deploy/ingest-agent.spec
+!deploy/updater.spec
+# Inno Setup 로컬 컴파일 산출물
+deploy/Output/
+# CI의 S3 업로드 stage 디렉터리
+deploy/dist-s3/
 
 # Installer logs
 pip-log.txt
