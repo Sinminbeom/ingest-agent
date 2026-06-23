@@ -11,6 +11,7 @@ from app.job_complete_thread import JobCompleteThread
 from app.job_worker_thread import JobWorkerThread
 from aws.step_functions import StepFunctions
 from config.project_config import ProjectConfig
+from exceptions.file_not_found_exception import FileNotFoundException
 from job.request_job import RequestJob
 from job.upload_job import UploadJob
 from job_container.request_container import RequestContainer
@@ -60,14 +61,30 @@ class IngestAgent(MultiThreadManager):
             tenant_public_id=tenant_public_id,
         )
         result = api_server.get_batch_files(batch_public_id)
+        file_info_list = result.files
+        self._verify_local_files_exist(file_info_list)
+
         storage = self._create_storage(result.sts)
 
         seq_id = ProtocolUtils.instance().get_sequence_id_now()
         root_path = ProjectConfig.instance().root_path
-        file_info_list = result.files
 
-        self.add_marker(file_info_list, root_path, tenant_public_id, seq_id, batch_public_id, storage)
-        self.push_upload_job(file_info_list, root_path, seq_id, tenant_public_id, batch_public_id, storage)
+        self.add_marker(
+            file_info_list,
+            root_path,
+            tenant_public_id,
+            seq_id,
+            batch_public_id,
+            storage,
+        )
+        self.push_upload_job(
+            file_info_list,
+            root_path,
+            seq_id,
+            tenant_public_id,
+            batch_public_id,
+            storage,
+        )
 
         request_job = RequestJob(
             self._request_container,
@@ -79,6 +96,15 @@ class IngestAgent(MultiThreadManager):
             batch_public_id,
         )
         self.push_shared_queue(self.name, request_job)
+
+    def _verify_local_files_exist(self, file_info_list: List[FileInfo]) -> None:
+        missing_paths = [
+            file_info.data_file_path
+            for file_info in file_info_list
+            if not os.path.isfile(file_info.data_file_path)
+        ]
+        if missing_paths:
+            raise FileNotFoundException(missing_paths)
 
     def _dst_path(
         self,
@@ -110,7 +136,9 @@ class IngestAgent(MultiThreadManager):
         storage: IStorage,
     ) -> None:
         for file_info in file_info_list:
-            dst_path = self._dst_path(root_path, tenant_public_id, batch_public_id, file_info)
+            dst_path = self._dst_path(
+                root_path, tenant_public_id, batch_public_id, file_info
+            )
             dst_url = storage.to_url(dst_path)
 
             self._request_container.add_marker(
@@ -146,7 +174,9 @@ class IngestAgent(MultiThreadManager):
         )
 
         for file_info in file_info_list:
-            dst_path = self._dst_path(root_path, tenant_public_id, batch_public_id, file_info)
+            dst_path = self._dst_path(
+                root_path, tenant_public_id, batch_public_id, file_info
+            )
             dst_url = storage.to_url(dst_path)
 
             upload_job = UploadJob(

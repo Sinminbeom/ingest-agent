@@ -5,6 +5,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
 from exceptions.custom_exception import CustomException
+from exceptions.file_not_found_exception import FileNotFoundException
 from exceptions.invalid_parameter_exception import InvalidParameterException
 from python_library.logger.app_logger import AppLogger
 from response.error_response import ErrorResponse
@@ -17,8 +18,8 @@ def _normalize_validation_loc(loc: tuple[Any, ...] | list[Any]) -> str:
     return ".".join(parts)
 
 
-def _build_invalid_parameter_response(
-    exc: InvalidParameterException,
+def _build_field_error_response(
+    exc: InvalidParameterException | FileNotFoundException,
 ) -> JSONResponse:
     ec = exc.error_code
     response = (
@@ -43,15 +44,19 @@ def register_exception_handlers(app: FastAPI) -> None:
             }
             for error in exc.errors()
         ]
-        return _build_invalid_parameter_response(
-            InvalidParameterException(field_errors)
-        )
+        return _build_field_error_response(InvalidParameterException(field_errors))
 
     @app.exception_handler(InvalidParameterException)
     async def handle_invalid_parameter_exception(
         request: Request, exc: InvalidParameterException
     ) -> JSONResponse:
-        return _build_invalid_parameter_response(exc)
+        return _build_field_error_response(exc)
+
+    @app.exception_handler(FileNotFoundException)
+    async def handle_file_not_found_exception(
+        request: Request, exc: FileNotFoundException
+    ) -> JSONResponse:
+        return _build_field_error_response(exc)
 
     @app.exception_handler(CustomException)
     async def handle_custom_exception(
