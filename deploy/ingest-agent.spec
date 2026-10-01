@@ -29,7 +29,7 @@ _src_packages = [
 hiddenimports = ["main"]
 for _pkg in _src_packages:
     hiddenimports += collect_submodules(_pkg)
-hiddenimports += collect_submodules("oncx_core")
+hiddenimports += collect_submodules("python_library")
 
 # uvicorn은 프로토콜/루프 구현을 런타임에 동적 import 한다.
 hiddenimports += [

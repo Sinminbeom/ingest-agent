@@ -1,4 +1,3 @@
-import time
 import os
 from typing import cast, List
 
@@ -22,6 +21,7 @@ from utils.protocol_utils import ProtocolUtils
 
 class IngestAgent(MultiThreadManager):
     INGEST_AGENT = "IngestAgent"
+    POP_TIMEOUT_SEC = 0.5
 
     def __init__(self):
         super().__init__()
@@ -196,8 +196,9 @@ class IngestAgent(MultiThreadManager):
             self.push_shared_queue(JobWorkerThread.JOB_WORKER, upload_job)
 
     def action(self) -> None:
-        while True:
-            request_job = cast(RequestJob, self.pop_shared_queue(self.name))
+        while not self.is_stop():
+            request_job = cast(
+                RequestJob, self.pop_shared_queue(self.name, self.POP_TIMEOUT_SEC)
+            )
             if request_job is not None:
                 request_job.execute()
-            time.sleep(0.001)

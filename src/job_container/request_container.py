@@ -102,6 +102,8 @@ class RequestContainer(CompositeNode):
 
     def mark_batch_requested(self, batch_public_id: str) -> None:
         for _, seq in self.iter_children():
+            if not isinstance(seq, SequenceContainer):
+                continue
             for _, batch in seq.iter_children():
                 if (
                     isinstance(batch, BatchContainer)
@@ -114,6 +116,8 @@ class RequestContainer(CompositeNode):
 
     def mark_batch_ingested(self, batch_public_id: str) -> None:
         for _, seq in self.iter_children():  # SequenceContainer들
+            if not isinstance(seq, SequenceContainer):
+                continue
             for _, batch in seq.iter_children():  # BatchContainer들
                 if (
                     isinstance(batch, BatchContainer)
@@ -126,6 +130,8 @@ class RequestContainer(CompositeNode):
 
     def find_batch(self, batch_public_id: str) -> BatchContainer:
         for _, seq in self.iter_children():
+            if not isinstance(seq, SequenceContainer):
+                continue
             for _, batch in seq.iter_children():
                 if (
                     isinstance(batch, BatchContainer)

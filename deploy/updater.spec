@@ -4,12 +4,12 @@
 #   uv run pyinstaller --distpath dist/_updater deploy/updater.spec
 # 산출물: dist/_updater/updater.exe  (CI가 dist/ingest-agent/로 복사)
 #
-# updater.py는 oncx-core AppLogger(로깅)와 표준 라이브러리만 사용한다.
-# oncx_core는 동적 import를 대비해 명시적으로 수집한다.
+# updater.py는 python-library AppLogger(로깅)와 표준 라이브러리만 사용한다.
+# python_library는 동적 import를 대비해 명시적으로 수집한다.
 
 from PyInstaller.utils.hooks import collect_submodules
 
-hiddenimports = collect_submodules("oncx_core")
+hiddenimports = collect_submodules("python_library")
 
 a = Analysis(
     ["updater.py"],

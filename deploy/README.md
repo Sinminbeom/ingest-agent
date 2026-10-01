@@ -108,7 +108,7 @@ uv run pyinstaller deploy/ingest-agent.spec
 # dist/ingest-agent/ingest-agent.exe 실행 확인
 ```
 
-> ⚠️ PyInstaller 번들은 동적 import(uvicorn/boto3/pydantic/oncx-core)에 민감하다.
+> ⚠️ PyInstaller 번들은 동적 import(uvicorn/boto3/pydantic/python-library)에 민감하다.
 > 최초 빌드 후 반드시 `ingest-agent.exe` 를 실제 실행해 기동·헬스체크
 > (`/ingest-agent/health`)까지 확인할 것. 누락 모듈이 있으면 spec의
 > `hiddenimports` 에 추가한다.
