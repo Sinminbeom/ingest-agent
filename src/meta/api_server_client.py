@@ -1,31 +1,30 @@
 from dataclasses import dataclass
-from typing import List
 
 import httpx
 
+from upload.upload_plan import UploadPlan
+from upload.upload_plan_request import UploadPlanFileRequest
+
 
 @dataclass(frozen=True)
-class FileInfo:
-    project_public_id: str
-    sample_public_id: str
-    data_file_path: str
+class DetailFileInfo:
+    detail_file_public_id: str
+    project_public_id: str | None
+    sample_public_id: str | None
+    data_file_path: str | None
     file_kind: str
+    is_masked: bool
 
 
-@dataclass(frozen=True)
-class StsCredentials:
-    access_key: str
-    secret_key: str
-    session_token: str
-
-
-@dataclass(frozen=True)
-class BatchFilesResult:
-    sts: StsCredentials
-    files: List[FileInfo]
+def _optional_str(value: object) -> str | None:
+    return None if value is None else str(value)
 
 
 class ApiServerClient:
+    # upload-plan은 파일·파트 수에 비례해 프리사인드 URL을 일괄 서명하므로
+    # 응답까지 오래 걸릴 수 있다 — 읽기 타임아웃을 넉넉히 잡는다.
+    TIMEOUT = httpx.Timeout(connect=10.0, read=300.0, write=60.0, pool=10.0)
+
     def __init__(self, base_url: str, token: str, tenant_public_id: str) -> None:
         self._base_url = base_url
         self._token = token
@@ -37,36 +36,46 @@ class ApiServerClient:
             "X-Tenant-Id": self._tenant_public_id,
         }
 
-    def get_batch_files(self, batch_public_id: str) -> BatchFilesResult:
+    def get_batch_detail_files(self, batch_public_id: str) -> list[DetailFileInfo]:
         response = httpx.get(
-            f"{self._base_url}/batches/{batch_public_id}/files",
+            f"{self._base_url}/batches/{batch_public_id}/with-detail-files",
             headers=self._headers(),
+            timeout=ApiServerClient.TIMEOUT,
         )
         response.raise_for_status()
-        # 서버는 ApiResponse envelope({timestamp, status, data})로 감싸고
+        # api-server는 ApiResponse envelope({timestamp, status, data})로 감싸고
         # 바디 키는 camelCase로 내려준다. data를 언래핑하고 camelCase로 읽는다.
         data = response.json()["data"]
-        sts_data = data["sts"]
-        sts = StsCredentials(
-            access_key=sts_data["accessKey"],
-            secret_key=sts_data["secretKey"],
-            session_token=sts_data["sessionToken"],
-        )
-        files = [
-            FileInfo(
-                project_public_id=str(item.get("projectPublicId") or ""),
-                sample_public_id=str(item.get("samplePublicId") or ""),
-                data_file_path=str(item.get("dataFilePath") or ""),
+        return [
+            DetailFileInfo(
+                detail_file_public_id=str(item["publicId"]),
+                project_public_id=_optional_str(item.get("projectPublicId")),
+                sample_public_id=_optional_str(item.get("samplePublicId")),
+                data_file_path=_optional_str(item.get("dataFilePath")),
                 file_kind=str(item["fileKind"]),
+                is_masked=bool(item.get("isMasked", False)),
             )
-            for item in data["files"]
+            for item in data["detailFiles"]
         ]
-        return BatchFilesResult(sts=sts, files=files)
+
+    def create_upload_plan(
+        self, batch_public_id: str, files: list[UploadPlanFileRequest]
+    ) -> UploadPlan:
+        # 요청 하나의 파일·URL 수 상한은 부르는 쪽이 지킨다(split_requests).
+        response = httpx.post(
+            f"{self._base_url}/batches/{batch_public_id}/upload-plan",
+            headers=self._headers(),
+            json={"files": [f.to_api_dict() for f in files]},
+            timeout=ApiServerClient.TIMEOUT,
+        )
+        response.raise_for_status()
+        return UploadPlan.from_api_dict(response.json()["data"])
 
     def update_batch_status(self, batch_public_id: str, status: str) -> None:
         response = httpx.patch(
             f"{self._base_url}/batches/{batch_public_id}/status",
             headers=self._headers(),
             json={"status": status},
+            timeout=ApiServerClient.TIMEOUT,
         )
         response.raise_for_status()

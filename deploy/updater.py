@@ -10,7 +10,7 @@
 base URL은 conf/application.conf의 [DEV]/[PRD] UPDATE_BASE_URL에서 읽는다.
 다운로드는 무인증 공개 HTTPS이므로 머신에 자격증명을 두지 않는다.
 
-HTTP는 표준 라이브러리(urllib)만 사용한다. 로깅은 oncx-core의 AppLogger를
+HTTP는 표준 라이브러리(urllib)만 사용한다. 로깅은 python-library의 AppLogger를
 재사용해 {설치폴더}/logs/updater.log 에 기록한다(콘솔 출력도 유지).
 """
 
@@ -23,7 +23,7 @@ import sys
 import urllib.parse
 import urllib.request
 
-from oncx_core.logger.app_logger import AppLogger
+from python_library.logger.app_logger import AppLogger
 
 
 def _install_dir() -> str:
@@ -38,7 +38,7 @@ LOGGING_CONF = "updater_logging.conf"  # {설치폴더}/conf/ 기준
 
 
 def _setup_logging() -> AppLogger | None:
-    """oncx-core AppLogger로 conf/updater_logging.conf 기반 로거를 구성한다.
+    """python-library AppLogger로 conf/updater_logging.conf 기반 로거를 구성한다.
 
     logging.conf가 ./logs/* 를 CWD 기준 상대경로로 읽으므로, 앱(run_server)과
     동일하게 작업 디렉터리를 설치 폴더로 고정한 뒤 로거를 초기화한다.

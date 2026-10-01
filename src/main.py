@@ -21,6 +21,8 @@ async def lifespan(app: FastAPI):
 
     ingest_agent = IngestAgent()
     ingest_agent.start()
+    # 절전·재시작으로 끊긴 업로드를 영속화된 플랜으로 이어올린다.
+    ingest_agent.resume_incomplete_uploads()
     AppLogger.instance().info("[IngestAgent] started")
 
     app.state.ingest_agent = ingest_agent
