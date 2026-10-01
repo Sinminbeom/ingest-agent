@@ -512,7 +512,7 @@ requires-dist = [
     { name = "psycopg", extras = ["binary"], specifier = ">=3.0.0" },
     { name = "pydantic", specifier = ">=2.0.0" },
     { name = "python-jose", extras = ["cryptography"], specifier = ">=3.5.0" },
-    { name = "python-library", path = "libs/python_library-2.3.0-py3-none-any.whl" },
+    { name = "python-library", path = "libs/python_library-3.0.0-py3-none-any.whl" },
     { name = "uvicorn", specifier = ">=0.38.0" },
 ]
 
@@ -1012,8 +1012,8 @@ cryptography = [
 
 [[package]]
 name = "python-library"
-version = "2.3.0"
-source = { path = "libs/python_library-2.3.0-py3-none-any.whl" }
+version = "3.0.0"
+source = { path = "libs/python_library-3.0.0-py3-none-any.whl" }
 dependencies = [
     { name = "argon2-cffi" },
     { name = "boto3" },
@@ -1021,7 +1021,7 @@ dependencies = [
     { name = "rich" },
 ]
 wheels = [
-    { filename = "python_library-2.3.0-py3-none-any.whl", hash = "sha256:7ff4cb3ed4a0d1a9115f2bbc0bf5bc2ed268258ea7b80cf6b1d24f9e59a24221" },
+    { filename = "python_library-3.0.0-py3-none-any.whl", hash = "sha256:b3e1f1d3155e1e56fae15a011169ae8f6cb4d931b339f7a9f06bcbed80c4bc85" },
 ]
 
 [package.metadata]

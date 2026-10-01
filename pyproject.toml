@@ -28,7 +28,7 @@ build = [
 ]
 
 [tool.uv.sources]
-python-library = { path = "libs/python_library-2.3.0-py3-none-any.whl" }
+python-library = { path = "libs/python_library-3.0.0-py3-none-any.whl" }
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
